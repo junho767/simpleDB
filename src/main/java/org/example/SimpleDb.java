@@ -4,7 +4,9 @@ import lombok.Setter;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Setter
@@ -44,19 +46,48 @@ public class SimpleDb {
                 ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
                 rs.next();
 
-                if (cls == Boolean.class) return cls.cast(rs.getBoolean(1));
-                else if (cls == String.class) return cls.cast(rs.getString(1));
-                else if (cls == Long.class) return cls.cast(rs.getLong(1));
-                else if (cls == LocalDateTime.class) return cls.cast(rs.getTimestamp(1).toLocalDateTime());
-                else if (cls == Map.class) {
+                if (cls == Boolean.class) {
+                    rs.next();
+                    return cls.cast(rs.getBoolean(1));
+                } else if (cls == String.class) {
+                    rs.next();
+                    return cls.cast(rs.getString(1));
+                } else if (cls == Long.class) {
+                    rs.next();
+                    return cls.cast(rs.getLong(1));
+                } else if (cls == LocalDateTime.class) {
+                    rs.next();
+                    return cls.cast(rs.getTimestamp(1).toLocalDateTime());
+                } else if (cls == Map.class) {
+                    rs.next();
                     Map<String, Object> row = new HashMap<>();
-                    row.put("id", 1L);
-                    row.put("title", "제목1");
-                    row.put("body", "내용1");
-                    row.put("createdDate", LocalDateTime.now());
-                    row.put("modifiedDate", LocalDateTime.now());
-                    row.put("isBlind", false);
+
+                    ResultSetMetaData rsmd = rs.getMetaData();
+                    int columnCount = rsmd.getColumnCount();
+
+                    for (int i = 1; i <= columnCount; i++) {
+                        String cname = rsmd.getColumnName(i);
+                        row.put(cname, rs.getObject(i));
+                    }
+
                     return cls.cast(row);
+                } else if (cls == List.class) {
+                    rs.next();
+                    List<Map<String, Object>> rows = new ArrayList<>();
+
+                    while (rs.next()) {
+                        Map<String, Object> row = new HashMap<>();
+
+                        ResultSetMetaData rsmd = rs.getMetaData();
+                        int columnCount = rsmd.getColumnCount();
+
+                        for (int i = 1; i <= columnCount; i++) {
+                            String cname = rsmd.getColumnName(i);
+                            row.put(cname, rs.getObject(i));
+                        }
+                    }
+
+                    return cls.cast(rows);
                 }
             }
 
@@ -111,5 +142,9 @@ public class SimpleDb {
 
     public Map<String, Object> selectRow(String sql, Object... params) {
         return _run(sql, Map.class);
+    }
+
+    public List<Map<String, Object>> selectRows(String sql, Object... params) {
+        return _run(sql, List.class);
     }
 }
