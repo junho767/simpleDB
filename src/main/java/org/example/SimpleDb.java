@@ -144,4 +144,8 @@ public class SimpleDb {
     public int delete(String string, List<Object> params) {
         return _run(string, Integer.class, params);
     }
+
+    public int update(String string, List<Object> params) {
+        return _run(string, Integer.class, params);
+    }
 }
