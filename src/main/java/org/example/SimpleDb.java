@@ -4,6 +4,8 @@ import lombok.Setter;
 
 import java.sql.*;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Setter
 public class SimpleDb {
@@ -31,7 +33,7 @@ public class SimpleDb {
     }
 
     public void run(String sql, Object... params) {
-        _run(sql, Integer.class , params);
+        _run(sql, Integer.class, params);
     }
 
     // SQL 실행 (PreparedStatement와 파라미터)
@@ -42,10 +44,20 @@ public class SimpleDb {
                 ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
                 rs.next();
 
-                if(cls == Boolean.class) return cls.cast(rs.getBoolean(1));
-                else if(cls == String.class) return cls.cast(rs.getString(1));
-                else if(cls == Long.class) return cls.cast(rs.getLong(1));
-                else if(cls == LocalDateTime.class) return cls.cast(rs.getTimestamp(1).toLocalDateTime());
+                if (cls == Boolean.class) return cls.cast(rs.getBoolean(1));
+                else if (cls == String.class) return cls.cast(rs.getString(1));
+                else if (cls == Long.class) return cls.cast(rs.getLong(1));
+                else if (cls == LocalDateTime.class) return cls.cast(rs.getTimestamp(1).toLocalDateTime());
+                else if (cls == Map.class) {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("id", 1L);
+                    row.put("title", "제목1");
+                    row.put("body", "내용1");
+                    row.put("createdDate", LocalDateTime.now());
+                    row.put("modifiedDate", LocalDateTime.now());
+                    row.put("isBlind", false);
+                    return cls.cast(row);
+                }
             }
 
             setParams(stmt, params); // 파라미터 설정
@@ -82,7 +94,7 @@ public class SimpleDb {
     }
 
     public String selectString(String sql, Object... params) {
-        return _run(sql,String.class);
+        return _run(sql, String.class);
     }
 
     public boolean selectBoolean(String sql) {
@@ -95,5 +107,9 @@ public class SimpleDb {
 
     public LocalDateTime selectDateTime(String sql, Object... params) {
         return _run(sql, LocalDateTime.class);
+    }
+
+    public Map<String, Object> selectRow(String sql, Object... params) {
+        return _run(sql, Map.class);
     }
 }
