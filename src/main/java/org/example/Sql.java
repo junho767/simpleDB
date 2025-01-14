@@ -89,7 +89,7 @@ public class Sql {
     }
 
     public Long selectLong() {
-        return 1L;
+        return simpleDb.selectLong(sb.toString());
     }
 
     public String selectString() {
