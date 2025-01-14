@@ -163,4 +163,11 @@ public class SimpleDb {
     public long insert(String string, List<Object> params) {
         return _run(string, Long.class, params);
     }
+
+    public List<Long> selectLongs(String sql, List<Object> params) {
+        List<Map<String, Object>> maps = selectRows(sql, params);
+        return maps.stream()
+                .map(m -> (Long) m.values().iterator().next())
+                .toList();
+    }
 }

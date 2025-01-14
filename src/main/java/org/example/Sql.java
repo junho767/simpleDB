@@ -2,6 +2,7 @@ package org.example;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Sql {
     private final StringBuilder sb;
@@ -61,5 +62,21 @@ public class Sql {
 
     public Boolean selectBoolean() {
         return simpleDb.selectBoolean(sb.toString(), params);
+    }
+
+    public Sql appendIn(String sql, Object... args) {
+        String inCluase = Arrays.stream(args)
+                .map(o -> "?")
+                .collect(Collectors.joining(", "));
+
+        String replacedSql = sql.replaceAll("\\?", inCluase);
+        this.params.addAll(Arrays.stream(args).toList());
+        this.sb.append(replacedSql);
+
+        return this;
+    }
+
+    public List<Long> selectLongs() {
+        return simpleDb.selectLongs(sb.toString(), params);
     }
 }
