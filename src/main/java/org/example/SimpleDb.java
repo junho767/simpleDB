@@ -38,6 +38,7 @@ public class SimpleDb {
     // SQL 실행 (PreparedStatement와 파라미터)
     public <T> T _run(String sql, Class<T> cls, List<Object> params) {
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            setParams(stmt, params); // 파라미터 설정
 
             if (sql.startsWith("SELECT")) {
                 ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
@@ -46,7 +47,6 @@ public class SimpleDb {
 
             if(sql.startsWith("INSERT")) {
                 if(cls == Long.class) {
-                    setParams(stmt, params);
                     stmt.executeUpdate();
                     ResultSet rs = stmt.getGeneratedKeys();
                     if (rs.next()) {
@@ -55,7 +55,7 @@ public class SimpleDb {
                 }
             }
 
-            setParams(stmt, params); // 파라미터 설정
+
             return cls.cast(stmt.executeUpdate());
 
         } catch (SQLException e) {
@@ -150,6 +150,13 @@ public class SimpleDb {
 
     public List<Map<String, Object>> selectRows(String sql, List<Object> params) {
         return _run(sql, List.class, params);
+    }
+
+    public List<Article> selectRows(String sql, List<Object> params, Class<?> cls) {
+        return selectRows(sql, params)
+                .stream()
+                .map(Article::fromMap)
+                .toList();
     }
 
     public int delete(String string, List<Object> params) {

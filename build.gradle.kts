@@ -16,6 +16,9 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 
+    testCompileOnly("org.projectlombok:lombok:1.18.36")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.36")
+
     runtimeOnly("com.mysql:mysql-connector-j:9.1.0")
 
     testImplementation("org.assertj:assertj-core:3.26.3")
