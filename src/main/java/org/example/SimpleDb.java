@@ -30,17 +30,23 @@ public class SimpleDb {
     }
 
     public boolean selectBoolean(String sql) {
-        return (boolean) run(sql);
+        return (boolean) _run(sql,0);
+    }
+
+    public void run(String sql, Object... params) {
+        _run(sql, 1 , params);
     }
 
     // SQL 실행 (PreparedStatement와 파라미터)
-    public Object run(String sql, Object... params) {
+    public Object _run(String sql, int type, Object... params) {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             if (sql.startsWith("SELECT")) {
                 ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
                 rs.next();
-                return rs.getBoolean(1);
+
+                if(type == 0) return rs.getBoolean(1);
+                else if(type == 1) return rs.getString(1);
             }
 
             setParams(stmt, params); // 파라미터 설정
@@ -74,5 +80,9 @@ public class SimpleDb {
 
     public Sql genSql() {
         return new Sql(this);
+    }
+
+    public String selectString(String sql, Object... params) {
+        return (String)_run(sql,1);
     }
 }
