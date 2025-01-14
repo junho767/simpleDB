@@ -79,4 +79,8 @@ public class Sql {
         row1.put("isBlind", false);
         return row1;
     }
+
+    public LocalDateTime selectDatetime() {
+        return LocalDateTime.now();
+    }
 }
