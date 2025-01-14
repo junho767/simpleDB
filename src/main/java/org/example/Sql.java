@@ -44,7 +44,7 @@ public class Sql {
         return simpleDb.selectRows(sb.toString(), params);
     }
 
-    public List<Article> selectRows(Class<?> cls) {
+    public <T> List<T> selectRows(Class<T> cls) {
         return simpleDb.selectRows(sb.toString(), params, cls);
     }
 
