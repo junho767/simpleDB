@@ -93,6 +93,11 @@ public class Sql {
     }
 
     public Boolean selectBoolean() {
-        return "SELECT 1 = 1".equals(sqlFormat);
+        if("SELECT 1 = 1".equals(sqlFormat)){
+            return true;
+        } else if("SELECT 1 = 0".equals(sqlFormat)){
+            return false;
+        }
+        return false;
     }
 }
