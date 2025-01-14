@@ -7,19 +7,23 @@ import java.util.List;
 import java.util.Map;
 
 public class Sql {
-    private String sqlFormat;
+    private final StringBuilder sb;
+    private final SimpleDb simpleDb;
 
-    public Sql() {
-
+    public Sql(SimpleDb simpleDb) {
+        this.simpleDb = simpleDb;
+        this.sb = new StringBuilder();
     }
 
     public Sql append(String sqlLine) {
-        this.sqlFormat = sqlLine;
+        this.sb.append(sqlLine);
+        this.sb.append(" ");
         return this;
     }
 
     public Sql append(String sqlLine, Object... args) {
-        this.sqlFormat = sqlLine;
+        this.sb.append(sqlLine);
+        this.sb.append(" ");
         return this;
     }
 
@@ -93,11 +97,6 @@ public class Sql {
     }
 
     public Boolean selectBoolean() {
-        if("SELECT 1 = 1".equals(sqlFormat)){
-            return true;
-        } else if("SELECT 1 = 0".equals(sqlFormat)){
-            return false;
-        }
-        return false;
+        return simpleDb.selectBoolean(sb.toString());
     }
 }
