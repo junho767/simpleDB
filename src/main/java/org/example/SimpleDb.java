@@ -4,10 +4,7 @@ import lombok.Setter;
 
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Setter
 public class SimpleDb {
@@ -34,12 +31,12 @@ public class SimpleDb {
         }
     }
 
-    public void run(String sql, Object... params) {
-        _run(sql, Integer.class, params);
+    public int run(String sql, Object... params) {
+        return _run(sql, Integer.class, Arrays.stream(params).toList());
     }
 
     // SQL 실행 (PreparedStatement와 파라미터)
-    public <T> T _run(String sql, Class<T> cls, Object... params) {
+    public <T> T _run(String sql, Class<T> cls, List<Object> params) {
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
 
             if (sql.startsWith("SELECT")) {
@@ -96,9 +93,9 @@ public class SimpleDb {
     }
 
     // PreparedStatement에 파라미터 바인딩
-    private void setParams(PreparedStatement stmt, Object... params) throws SQLException {
-        for (int i = 0; i < params.length; i++) {
-            stmt.setObject(i + 1, params[i]); // '?' 위치에 값 설정
+    private void setParams(PreparedStatement stmt, List<Object> params) throws SQLException {
+        for (int i = 0; i < params.size(); i++) {
+            stmt.setObject(i + 1, params.get(i)); // '?' 위치에 값 설정
         }
     }
 
@@ -120,27 +117,31 @@ public class SimpleDb {
         return new Sql(this);
     }
 
-    public String selectString(String sql, Object... params) {
-        return _run(sql, String.class);
+    public String selectString(String sql,List<Object> params) {
+        return _run(sql, String.class, params);
     }
 
-    public boolean selectBoolean(String sql) {
-        return _run(sql, Boolean.class);
+    public boolean selectBoolean(String sql, List<Object> params) {
+        return _run(sql, Boolean.class, params);
     }
 
-    public Long selectLong(String sql, Object... params) {
-        return _run(sql, Long.class);
+    public Long selectLong(String sql,List<Object> params) {
+        return _run(sql, Long.class, params);
     }
 
-    public LocalDateTime selectDateTime(String sql, Object... params) {
-        return _run(sql, LocalDateTime.class);
+    public LocalDateTime selectDateTime(String sql,List<Object> params) {
+        return _run(sql, LocalDateTime.class, params);
     }
 
-    public Map<String, Object> selectRow(String sql, Object... params) {
-        return _run(sql, Map.class);
+    public Map<String, Object> selectRow(String sql,List<Object> params) {
+        return _run(sql, Map.class, params);
     }
 
-    public List<Map<String, Object>> selectRows(String sql, Object... params) {
-        return _run(sql, List.class);
+    public List<Map<String, Object>> selectRows(String sql, List<Object> params) {
+        return _run(sql, List.class,params);
+    }
+
+    public int delete(String string, List<Object> params) {
+        return _run(string, Integer.class, params);
     }
 }
