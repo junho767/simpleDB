@@ -37,11 +37,22 @@ public class SimpleDb {
 
     // SQL 실행 (PreparedStatement와 파라미터)
     public <T> T _run(String sql, Class<T> cls, List<Object> params) {
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             if (sql.startsWith("SELECT")) {
                 ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
                 return parseResultSet(rs, cls);
+            }
+
+            if(sql.startsWith("INSERT")) {
+                if(cls == Long.class) {
+                    setParams(stmt, params);
+                    stmt.executeUpdate();
+                    ResultSet rs = stmt.getGeneratedKeys();
+                    if (rs.next()) {
+                        return cls.cast(rs.getLong(1));
+                    }
+                }
             }
 
             setParams(stmt, params); // 파라미터 설정
@@ -70,7 +81,7 @@ public class SimpleDb {
             return cls.cast(rsRowToMap(rs));
         } else if (cls == List.class) {
             List<Map<String, Object>> rows = new ArrayList<>();
-            while(rs.next()) {
+            while (rs.next()) {
                 rows.add(rsRowToMap(rs));
             }
             return cls.cast(rows);
@@ -117,7 +128,7 @@ public class SimpleDb {
         return new Sql(this);
     }
 
-    public String selectString(String sql,List<Object> params) {
+    public String selectString(String sql, List<Object> params) {
         return _run(sql, String.class, params);
     }
 
@@ -125,20 +136,20 @@ public class SimpleDb {
         return _run(sql, Boolean.class, params);
     }
 
-    public Long selectLong(String sql,List<Object> params) {
+    public Long selectLong(String sql, List<Object> params) {
         return _run(sql, Long.class, params);
     }
 
-    public LocalDateTime selectDateTime(String sql,List<Object> params) {
+    public LocalDateTime selectDateTime(String sql, List<Object> params) {
         return _run(sql, LocalDateTime.class, params);
     }
 
-    public Map<String, Object> selectRow(String sql,List<Object> params) {
+    public Map<String, Object> selectRow(String sql, List<Object> params) {
         return _run(sql, Map.class, params);
     }
 
     public List<Map<String, Object>> selectRows(String sql, List<Object> params) {
-        return _run(sql, List.class,params);
+        return _run(sql, List.class, params);
     }
 
     public int delete(String string, List<Object> params) {
@@ -147,5 +158,9 @@ public class SimpleDb {
 
     public int update(String string, List<Object> params) {
         return _run(string, Integer.class, params);
+    }
+
+    public long insert(String string, List<Object> params) {
+        return _run(string, Long.class, params);
     }
 }

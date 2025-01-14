@@ -28,7 +28,7 @@ public class Sql {
     }
 
     public long insert() {
-        return 1;
+        return simpleDb.insert(sb.toString(), params);
     }
 
     public int update() {
