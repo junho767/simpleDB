@@ -3,6 +3,7 @@ package org.example;
 import lombok.Setter;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 
 @Setter
 public class SimpleDb {
@@ -30,7 +31,7 @@ public class SimpleDb {
     }
 
     public void run(String sql, Object... params) {
-        _run(sql, String.class , params);
+        _run(sql, Integer.class , params);
     }
 
     // SQL 실행 (PreparedStatement와 파라미터)
@@ -44,6 +45,7 @@ public class SimpleDb {
                 if(cls == Boolean.class) return cls.cast(rs.getBoolean(1));
                 else if(cls == String.class) return cls.cast(rs.getString(1));
                 else if(cls == Long.class) return cls.cast(rs.getLong(1));
+                else if(cls == LocalDateTime.class) return cls.cast(rs.getTimestamp(1).toLocalDateTime());
             }
 
             setParams(stmt, params); // 파라미터 설정
@@ -89,5 +91,9 @@ public class SimpleDb {
 
     public Long selectLong(String sql, Object... params) {
         return _run(sql, Long.class);
+    }
+
+    public LocalDateTime selectDateTime(String sql, Object... params) {
+        return _run(sql, LocalDateTime.class);
     }
 }
