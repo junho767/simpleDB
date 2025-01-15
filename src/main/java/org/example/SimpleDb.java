@@ -11,23 +11,32 @@ public class SimpleDb {
     private String dbUrl;
     private String dbUser;
     private String dbPassword;
-    private Connection connection;
+    private Map<String, Connection> connections;
     private boolean devMode = false;
 
     // 생성자: 데이터베이스 연결 정보 초기화
     public SimpleDb(String host, String user, String password, String dbName) {
         this.dbUrl = "jdbc:mysql://" + host + ":3306/" + dbName; // JDBC URL
         this.dbUser = user;                                    // 사용자 이름
-        this.dbPassword = password;                            // 비밀번호
+        this.dbPassword = password; // 비밀번호
+        connections = new HashMap<>();
+    }
 
-        // 연결 초기화
+    private Connection getCurrentThreadConnection() {
+
         try {
-            connection = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
-            if (devMode) {
-                System.out.println("데이터베이스에 성공적으로 연결되었습니다.");
+            Connection conn = connections.get(Thread.currentThread().getName());
+
+            if (conn == null) {
+                Connection currentThreadConn = DriverManager.getConnection(dbUrl, dbUser, dbPassword);
+                connections.put(Thread.currentThread().getName(), currentThreadConn);
+
+                return currentThreadConn;
             }
+
+            return conn;
         } catch (SQLException e) {
-            throw new RuntimeException("데이터베이스 연결 실패: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
@@ -36,17 +45,19 @@ public class SimpleDb {
     }
 
     // SQL 실행 (PreparedStatement와 파라미터)
-    public <T> T _run(String sql, Class<T> cls, List<Object> params) {
+    private <T> T _run(String sql, Class<T> cls, List<Object> params) {
+        Connection connection = getCurrentThreadConnection();
         try (PreparedStatement stmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            setParams(stmt, params); // 파라미터 설정
+            setParams(stmt, params);
 
             if (sql.startsWith("SELECT")) {
-                ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우수
+                ResultSet rs = stmt.executeQuery(); // 실제 반영된 로우 수. insert, update, delete
                 return parseResultSet(rs, cls);
             }
 
-            if(sql.startsWith("INSERT")) {
-                if(cls == Long.class) {
+            if (sql.startsWith("INSERT")) {
+                if (cls == Long.class) {
+
                     stmt.executeUpdate();
                     ResultSet rs = stmt.getGeneratedKeys();
                     if (rs.next()) {
@@ -54,7 +65,6 @@ public class SimpleDb {
                     }
                 }
             }
-
 
             return cls.cast(stmt.executeUpdate());
 
@@ -112,15 +122,11 @@ public class SimpleDb {
 
     // 데이터베이스 연결 종료
     public void close() {
-        if (connection != null) {
-            try {
-                connection.close();
-                if (devMode) {
-                    System.out.println("데이터베이스 연결 종료.");
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException("데이터베이스 연결 종료 실패: " + e.getMessage());
-            }
+        try {
+            Connection conn = getCurrentThreadConnection();
+            conn.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -183,7 +189,7 @@ public class SimpleDb {
 
     public void startTransaction() {
         try {
-            connection.setAutoCommit(false); // auto commit 끄기
+            getCurrentThreadConnection().setAutoCommit(false); // auto commit 끄기
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -191,7 +197,7 @@ public class SimpleDb {
 
     public void rollback() {
         try {
-            connection.rollback();
+            getCurrentThreadConnection().rollback();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
