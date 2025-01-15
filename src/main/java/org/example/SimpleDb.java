@@ -180,4 +180,10 @@ public class SimpleDb {
                 .map(m -> (Long) m.values().iterator().next())
                 .toList();
     }
+
+    public void startTransaction() {
+    }
+
+    public void rollback() {
+    }
 }
